@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ "$#" -eq 0 ]; then
+  echo "Usage: $0 FOLDERS/FILES" >&2
+  exit 1
+fi
+
+for f in "$@"; do
+  if [ -f "$f" ]; then
+    echo "Ciphering file $f"
+    pv "$f" | gpg -e -o "$(basename "$f").gpg"
+  elif [ -d "$f" ]; then
+    echo "Ciphering folder $f"
+    tar cf - "$f" | pv -s $(($(du -sk "$f" | awk '{print $1}') * 1024)) | gzip | gpg -e -o "$(basename "$f").tar.gz.gpg"
+  else
+    echo "File Not Found: $f" >&2
+    exit 1
+  fi
+done

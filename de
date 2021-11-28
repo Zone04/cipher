@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ "$#" -eq 0 ]; then
+  echo "Usage: $0 CIPHERED_FOLDERS_AND_FILES" >&2
+  exit 1
+fi
+
+gpg -o /dev/null --sign <(echo "1234")
+
+for f in "$@"; do
+  if [ ! -f "$f" ]; then
+    echo "Not a file: $f" >&2
+    exit 1
+  fi
+
+  echo "Deciphering $f"
+  if [ "$f" == *.tar.gz.gpg ]; then
+    pv "$f" | gpg -d 2>/dev/null | tar -xz
+  else
+    pv "$f" | gpg -d 2>/dev/null -o "${f%.gpg}"
+  fi
+done
