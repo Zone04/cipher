@@ -11,13 +11,10 @@ for f in "$@"; do
     exit 1
   fi
 
-  # Sign a useless string to make sure passphrase of the gpg key is in cache
-  gpg -o /dev/null --sign <(echo "1234")
-
   echo "Deciphering $f"
   if [[ "$f" == *.tar.gz.gpg ]]; then
-    pv "$f" | gpg -d 2>/dev/null | tar -xz
+    gpg -d 2>/dev/null <(pv "$f") | tar -xz
   else
-    pv "$f" | gpg -d 2>/dev/null -o "${f%.gpg}"
+    gpg -d 2>/dev/null -o "${f%.gpg}" <(pv "$f")
   fi
 done
