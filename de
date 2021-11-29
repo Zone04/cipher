@@ -11,7 +11,7 @@ for f in "$@"; do
     exit 1
   fi
 
-  echo "Deciphering $f"
+  echo "Deciphering $f" >&2
   if [[ "$f" == *.tar.gz.gpg ]]; then
     gpg -d 2>/dev/null <(pv "$f") | tar -xz
   else

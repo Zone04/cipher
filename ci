@@ -7,10 +7,10 @@ fi
 
 for f in "$@"; do
   if [ -f "$f" ]; then
-    echo "Ciphering file $f"
+    echo "Ciphering file $f" >&2
     pv "$f" | gpg -e -o "$(basename "$f").gpg"
   elif [ -d "$f" ]; then
-    echo "Ciphering folder $f"
+    echo "Ciphering folder $f" >&2
     tar cf - "$f" | pv -s $(($(du -sk "$f" | awk '{print $1}') * 1024)) | gzip | gpg -e -o "$(basename "$f").tar.gz.gpg"
   else
     echo "File Not Found: $f" >&2
