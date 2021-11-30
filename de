@@ -1,7 +1,23 @@
 #!/bin/bash
 
+print_usage() {
+  echo "Usage: $0 [-x] CIPHERED_FOLDERS_AND_FILES" >&2
+}
+
+extract=false
+
+while getopts 'x' flag; do
+  case "${flag}" in
+    x) extract=true ;;
+    *) print_usage
+       exit 1 ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
 if [ "$#" -eq 0 ]; then
-  echo "Usage: $0 CIPHERED_FOLDERS_AND_FILES" >&2
+  print_usage
   exit 1
 fi
 
@@ -12,7 +28,7 @@ for f in "$@"; do
   fi
 
   echo "Deciphering $f" >&2
-  if [[ "$f" == *.tar.gz.gpg ]]; then
+  if [[ "$f" == *.tar.gz.gpg ]] && [[ $extract == true ]]; then
     gpg -d 2>/dev/null <(pv "$f") | tar -xz
   else
     gpg -d 2>/dev/null -o "${f%.gpg}" <(pv "$f")
