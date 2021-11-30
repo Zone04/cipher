@@ -4,32 +4,47 @@ print_usage() {
   echo "Usage: $0 [-x] CIPHERED_FOLDERS_AND_FILES" >&2
 }
 
+#############
+### Flags ###
+#############
+
 extract=false
 
 while getopts 'x' flag; do
   case "${flag}" in
-    x) extract=true ;;
+    x) extract=true ;; # Do we try to auto extract?
     *) print_usage
        exit 1 ;;
   esac
 done
 
-shift $(($OPTIND - 1))
+shift $(($OPTIND - 1)) # shift to positionnal arguments
+
+############
+### Args ###
+############
 
 if [ "$#" -eq 0 ]; then
   print_usage
   exit 1
 fi
 
+############
+### Main ###
+############
+
 for f in "$@"; do
+  # Check if the arg is a file, in case it got deleted during deciphering of previous files
   if [ ! -f "$f" ]; then
     echo "Not a file: $f" >&2
     exit 1
   fi
 
   echo "Deciphering $f" >&2
+  # If the file corresponds to a ciphered folder and we asked to extract
   if [[ "$f" == *.tar.gz.gpg ]] && [[ $extract == true ]]; then
     gpg -d 2>/dev/null <(pv "$f") | tar -xz
+  # Default, just decipher and remove .gpg file extension
   else
     gpg -d 2>/dev/null -o "$(basename "${f%.gpg}")" <(pv "$f")
   fi

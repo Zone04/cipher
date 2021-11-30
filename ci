@@ -1,19 +1,30 @@
 #!/bin/bash
 
+############
+### Args ###
+############
+
 if [ "$#" -eq 0 ]; then
   echo "Usage: $0 FOLDERS/FILES" >&2
   exit 1
 fi
 
+############
+### Main ###
+############
+
 for f in "$@"; do
+  # If file, simply cipher and add .gpg file extension
   if [ -f "$f" ]; then
     echo "Ciphering file $f" >&2
     pv "$f" | gpg -e -o "$(basename "$f").gpg"
+  # If folder, tar folder before ciphering and add .tar.gz.gpg file extension
   elif [ -d "$f" ]; then
     echo "Ciphering folder $f" >&2
     tar cf - "$f" | pv -s $(($(du -sk "$f" | awk '{print $1}') * 1024)) | gzip | gpg -e -o "$(basename "$f").tar.gz.gpg"
+  # In case the file/folder got deleted during ciphering of previous files/folders
   else
-    echo "File Not Found: $f" >&2
+    echo "File or Folder Not Found: $f" >&2
     exit 1
   fi
 done
