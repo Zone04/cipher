@@ -1,7 +1,7 @@
 #!/bin/bash
 
 print_usage() {
-  echo "Usage: $0 [-x] CIPHERED_FOLDERS_AND_FILES" >&2
+  echo "Usage: $0 [-x] [-o output_folder] CIPHERED_FOLDERS_AND_FILES" >&2
 }
 
 #############
@@ -9,10 +9,12 @@ print_usage() {
 #############
 
 extract=false
+output=.
 
-while getopts 'x' flag; do
+while getopts 'xo:' flag; do
   case "${flag}" in
     x) extract=true ;; # Do we try to auto extract?
+    o) output="$OPTARG" ;; # Custom output folder
     *) print_usage
        exit 1 ;;
   esac
@@ -26,6 +28,10 @@ shift $(($OPTIND - 1)) # shift to positionnal arguments
 
 if [ "$#" -eq 0 ]; then
   print_usage
+  exit 1
+fi
+if [ ! -d "$output" ]; then
+  echo "$0: $output: Cannot open: No such file or directory"
   exit 1
 fi
 
@@ -43,9 +49,9 @@ for f in "$@"; do
   echo "Deciphering $f" >&2
   # If the file corresponds to a ciphered folder and we asked to extract
   if [[ "$f" == *.tar.gz.gpg ]] && [[ $extract == true ]]; then
-    gpg -d 2>/dev/null <(pv "$f") | tar -xz
+    gpg -d 2>/dev/null <(pv "$f") | tar -xzC "$output"
   # Default, just decipher and remove .gpg file extension
   else
-    gpg -d 2>/dev/null -o "$(basename "${f%.gpg}")" <(pv "$f")
+    gpg -d 2>/dev/null -o "$output/$(basename "${f%.gpg}")" <(pv "$f")
   fi
 done
