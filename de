@@ -31,7 +31,7 @@ if [ "$#" -eq 0 ]; then
   exit 1
 fi
 if [ ! -d "$output" ]; then
-  echo "$0: $output: Cannot open: No such file or directory"
+  echo "$0: $output: Cannot open: No such directory"
   exit 1
 fi
 
@@ -42,7 +42,7 @@ fi
 for f in "$@"; do
   # Check if the arg is a file, in case it got deleted during deciphering of previous files
   if [ ! -f "$f" ]; then
-    echo "Not a file: $f" >&2
+    echo "$0: $f: Cannot open: No such file" >&2
     exit 1
   fi
 
