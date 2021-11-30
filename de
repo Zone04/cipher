@@ -31,6 +31,6 @@ for f in "$@"; do
   if [[ "$f" == *.tar.gz.gpg ]] && [[ $extract == true ]]; then
     gpg -d 2>/dev/null <(pv "$f") | tar -xz
   else
-    gpg -d 2>/dev/null -o "${f%.gpg}" <(pv "$f")
+    gpg -d 2>/dev/null -o "$(basename "${f%.gpg}")" <(pv "$f")
   fi
 done
