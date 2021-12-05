@@ -1,7 +1,7 @@
 #!/bin/bash
 
 print_usage() {
-  echo "Usage: $0 [-o output_folder] FOLDERS_AND_FILES" >&2
+  echo "Usage: $0 [-r recipient] [-o output_folder] FOLDERS_AND_FILES" >&2
 }
 
 #############
@@ -9,10 +9,12 @@ print_usage() {
 #############
 
 output=.
+recipients=()
 
-while getopts 'o:' flag; do
+while getopts 'o:r:' flag; do
   case "${flag}" in
     o) output="$OPTARG" ;; # Custom output folder
+    r) recipients+=("$OPTARG") ;;
     *) print_usage
        exit 1 ;;
   esac
@@ -42,11 +44,11 @@ for f in "$@"; do
   # If file, simply cipher and add .gpg file extension
   if [ -f "$f" ]; then
     echo "Ciphering file $f" >&2
-    pv "$f" | gpg -e -o "$output/$(basename "$f").gpg"
+    pv "$f" | gpg -e $(for r in ${recipients[@]}; do echo -n "-r $r "; done) -o "$output/$(basename "$f").gpg"
   # If folder, tar folder before ciphering and add .tar.gz.gpg file extension
   elif [ -d "$f" ]; then
     echo "Ciphering folder $f" >&2
-    tar cf - "$f" | pv -s $(($(du -sk "$f" | awk '{print $1}') * 1024)) | gzip | gpg -e -o "$output/$(basename "$f").tar.gz.gpg"
+    tar cf - "$f" | pv -s $(($(du -sk "$f" | awk '{print $1}') * 1024)) | gzip | gpg -e $(for r in ${recipients[@]}; do echo -n "-r $r "; done) -o "$output/$(basename "$f").tar.gz.gpg"
   # In case the file/folder got deleted during ciphering of previous files/folders
   else
     echo "File or Folder Not Found: $f" >&2
